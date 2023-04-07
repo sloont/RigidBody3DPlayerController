@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cvk3d16qbao5i"]
+
+[ext_resource type="Script" path="res://Movement/Walking.cs" id="1_tu264"]
+
+[node name="Walking" type="Node3D"]
+script = ExtResource("1_tu264")

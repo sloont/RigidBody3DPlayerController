@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bwxin5wk2lkfd"]
+
+[ext_resource type="Script" path="res://Movement/Jumping.cs" id="1_w0wqk"]
+
+[node name="Jumping" type="Node3D"]
+script = ExtResource("1_w0wqk")
