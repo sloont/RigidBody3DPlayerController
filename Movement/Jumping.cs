@@ -2,7 +2,7 @@ using Godot;
 
 public partial class Jumping : Movement
 {
-	[Export] public float JumpVelocity = 9f;
+	[Export] public float JumpAcceleration = 10f;
 
 	public override bool ShouldActivate()
 	{
@@ -20,9 +20,13 @@ public partial class Jumping : Movement
 		double delta
 	)
 	{
+		// If velocity is m/s
+		//    force is kg*m/s*s
+		//    impulse is kg*m/s
+
 		// if we're jumping. Set linearVelocity.Y to jumpVelocity
 		if (isMovementOn) {
-			linearVelocity.Y = JumpVelocity;
+			linearVelocity.Y = JumpAcceleration / (float)delta;
 			GD.Print("Movement ON");
 		}
 

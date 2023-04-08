@@ -2,8 +2,8 @@ using Godot;
 
 public partial class Walking : Movement
 {
-	[Export] public float acceleration = 8f;
-	[Export] public float deceleration = 8f;
+	[Export] public float acceleration = 100f;
+	[Export] public float deceleration = 80f;
 
 	[Export] public float airborneDamping = 0.3f;
 
@@ -31,21 +31,21 @@ public partial class Walking : Movement
 		tempVelocity.Y = 0;
 
 		// Save temp acceleration for mutation of param acceleration
-		float tempAcceleration;
+		float tempAccelerationCoefficient;
 		// Need to know where we're going for Lerp
 		Vector3 destination = direction * speed;
 
 		// Use dot product of destination and velocity to find out whether we should be
 		// accelerating or decelerating
-		tempAcceleration = (direction.Dot(tempVelocity) > 0) ? acceleration : deceleration;
+		tempAccelerationCoefficient = (direction.Dot(tempVelocity) > 0) ? acceleration : deceleration;
 
 		// Don't care about LinearVelocity.Y, but need to know if we're in the air
 		if (!grounded) {
-			tempAcceleration *= airborneDamping;
+			destination *= airborneDamping;
 		}
 
 		// Lerp LinearVelocity to destination using acceleration * time
-		tempVelocity = tempVelocity.Lerp(destination, tempAcceleration * (float)delta);
+		tempVelocity = tempVelocity.Lerp(destination, 2 * tempAccelerationCoefficient * (float)delta);
 
 		// Save the new X and Z values to the linearVelocity param we were passed.
 		linearVelocity.X = tempVelocity.X;

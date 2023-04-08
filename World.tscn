@@ -5,7 +5,7 @@
 [ext_resource type="Script" path="res://Player.cs" id="3_rccg6"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ssrn1"]
-friction = 0.0
+friction = 0.75
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_cs76p"]
 size = Vector3(100, 2, 100)
@@ -70,7 +70,10 @@ mesh = SubResource("BoxMesh_ijfg4")
 
 [node name="Player" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1, 0.5)
-lock_rotation = true
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+axis_lock_angular_z = true
+mass = 80.0
 script = ExtResource("3_rccg6")
 movementComponentsPaths = ["res://Movement/Jumping.tscn", "res://Movement/Walking.tscn"]
 

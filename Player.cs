@@ -59,7 +59,7 @@ public partial class Player : RigidBody3D
 	private Vector3 _linearVelocity = Vector3.Zero;
 	private Vector3 _lastLinearVelocity = Vector3.Zero;
 
-
+	//
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -86,13 +86,16 @@ public partial class Player : RigidBody3D
 
 		if (Input.IsActionJustPressed("jump")) {
 			Jump();
-			GD.Print("Jump input");
-			GD.Print(receivedJumpInput);
 		}
 
 		_lastLinearVelocity = _linearVelocity;
 
 		_linearVelocity = _Move(delta);
+
+		ApplyCentralForce(_linearVelocity * Mass);
+
+		// reset the jump bool. we are finished with it.
+		_receivedJumpInput = false;
 	}
 
 	// _Move method is provided engine physics delta
@@ -119,13 +122,14 @@ public partial class Player : RigidBody3D
 				delta
 			);
 
-			// GD.Print(movement.Name, ":  ", tempVelocity);
+			GD.Print(movement.Name, ":  ", tempVelocity);
+		}
+
+		if (!grounded && !receivedJumpInput) {
+			tempVelocity.Y = tempVelocity.Lerp(Vector3.Down, 9.8f * (float)delta).Y;
 		}
 
 		_CheckWalking(tempVelocity);
-
-		// reset the jump bool. we are finished with it.
-		_receivedJumpInput = false;
 
 		return tempVelocity;
 
@@ -136,9 +140,7 @@ public partial class Player : RigidBody3D
 	// safe space for rigid body state modification
 	public override void _IntegrateForces(PhysicsDirectBodyState3D state)
 	{
-		state.LinearVelocity = _linearVelocity;
-
-		// GD.Print(state.LinearVelocity);
+		GD.Print(state.LinearVelocity, "\n", state.TotalGravity, state.TotalLinearDamp);
 	}
 
 	public void Jump()
