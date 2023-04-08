@@ -10,18 +10,6 @@ https://github.com/godotengine/godot/blob/61630d4e1e279278d29576b979b710b9025f47
 built this to replicate and isolate an issue with a private project
 
 ## changelog
-#### 3414af8ed4994341588217d2881814a02edd1e23
-- core functionality/init
-- meant to be 1:1 with another project
-- goal is to develop a concise controller for physics based movement controls
-
-#### issues
-- long story short, this flawed controller makes it obvious that physics is not being respected
-- manually setting velocity within the `_IntegrateForces` callback creates an interesting vibrational effect
-  when jumping/falling.
-
-  current theory is gravity being applied as a force while linearVelocity.Y (and X,Z) is applied as a velocity.
-  likely that not using mass to calculate these values is causing the 'shake'
   
 #### 12fae100f4254b23a4a603c4e1c8d5181a49d4f3
 - no longer manually setting LinearVelocity
@@ -42,3 +30,16 @@ built this to replicate and isolate an issue with a private project
   this is effectively "desired velocity"
 - specific calculations for `Walking` and `Jumping` are hacks
 - jump floats forever
+
+#### 3414af8ed4994341588217d2881814a02edd1e23
+- core functionality/init
+- meant to be 1:1 with another project
+- goal is to develop a concise controller for physics based movement controls
+
+#### issues
+- long story short, this flawed controller makes it obvious that physics is not being respected
+- manually setting velocity within the `_IntegrateForces` callback creates an interesting vibrational effect
+  when jumping/falling.
+
+  current theory is gravity being applied as a force while linearVelocity.Y (and X,Z) is applied as a velocity.
+  likely that not using mass to calculate these values is causing the 'shake'
