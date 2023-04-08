@@ -12,7 +12,7 @@ built this to replicate and isolate an issue with a private project
 
 ## changelog
   
-#### 12fae100f4254b23a4a603c4e1c8d5181a49d4f3
+### [12fae100f4254b23a4a603c4e1c8d5181a49d4f3](https://github.com/sloont/RigidBody3DPlayerController/commit/12fae100f4254b23a4a603c4e1c8d5181a49d4f3)
 - no longer manually setting LinearVelocity
 - Player scene mass is 80kg
 - Ground scene physics material has friction 0.75
@@ -32,7 +32,7 @@ built this to replicate and isolate an issue with a private project
 - specific calculations for `Walking` and `Jumping` are hacks
 - jump floats forever
 
-#### 3414af8ed4994341588217d2881814a02edd1e23
+### [3414af8ed4994341588217d2881814a02edd1e23](https://github.com/sloont/RigidBody3DPlayerController/commit/3414af8ed4994341588217d2881814a02edd1e23)
 - core functionality/init
 - meant to be 1:1 with another project
 - goal is to develop a concise controller for physics based movement controls
