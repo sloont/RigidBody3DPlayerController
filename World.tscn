@@ -8,7 +8,7 @@
 friction = 0.75
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_cs76p"]
-size = Vector3(100, 2, 100)
+size = Vector3(1000, 2, 1000)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ye87t"]
 albedo_texture = ExtResource("1_a3s7a")
@@ -16,7 +16,7 @@ uv1_scale = Vector3(0.125, 0.125, 0.125)
 uv1_triplanar = true
 
 [sub_resource type="BoxMesh" id="BoxMesh_lfell"]
-size = Vector3(100, 2, 100)
+size = Vector3(1000, 2, 1000)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_vqip7"]
 size = Vector3(10, 5, 5)
@@ -74,6 +74,7 @@ axis_lock_angular_x = true
 axis_lock_angular_y = true
 axis_lock_angular_z = true
 mass = 80.0
+angular_damp = 1.0
 script = ExtResource("3_rccg6")
 movementComponentsPaths = ["res://Movement/Jumping.tscn", "res://Movement/Walking.tscn"]
 

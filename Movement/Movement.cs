@@ -41,16 +41,11 @@ public abstract partial class Movement : Node3D
 		return false;
 	}
 
-	public virtual Vector3 CalculateLinearVelocity(
+	public abstract bool CalculateLinearVelocity(
 		Vector3 direction,
-		Vector3 linearVelocity,
-		float speed,
-		bool grounded,
-		double delta
-	)
-	{
-		return linearVelocity;
-	}
+		ref Vector3 linearVelocity,
+		bool grounded
+	);
 
 	public void PrintClass(Variant custom)
 	{
