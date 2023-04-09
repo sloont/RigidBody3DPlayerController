@@ -2,55 +2,40 @@ using Godot;
 
 public partial class Walking : Movement
 {
-	[Export] public float acceleration = 100f;
-	[Export] public float deceleration = 80f;
+	[Export] public float positiveVelocityCoeffecient = 0.2f;
+	[Export] public float negativeVelocityCoefficient = 0.1f;
 
 	[Export] public float airborneDamping = 0.3f;
 
 	public override bool ShouldActivate()
 	{
+		// temporary
 		return true;
 	}
 
-	public override Vector3 CalculateLinearVelocity(
+	public override bool CalculateLinearVelocity(
 		Vector3 direction,
-		Vector3 linearVelocity,
-		float speed,
-		bool grounded,
-		double delta
+		ref Vector3 linearVelocity,
+		bool grounded
 	)
 	{
-		// if we're not using this Movement, return the linearVelocity we were given
 		if (!isMovementOn) {
-			return linearVelocity;
+			return false;
 		}
-		GD.Print("Movement ON");
-
-		// Walking is only concerned with 2D velocity: X and Z
-		Vector3 tempVelocity = linearVelocity;
-		tempVelocity.Y = 0;
-
-		// Save temp acceleration for mutation of param acceleration
-		float tempAccelerationCoefficient;
-		// Need to know where we're going for Lerp
-		Vector3 destination = direction * speed;
 
 		// Use dot product of destination and velocity to find out whether we should be
 		// accelerating or decelerating
-		tempAccelerationCoefficient = (direction.Dot(tempVelocity) > 0) ? acceleration : deceleration;
+		float velocityCoefficient = (direction.Dot(linearVelocity) > 0) ? positiveVelocityCoeffecient : negativeVelocityCoefficient;
 
-		// Don't care about LinearVelocity.Y, but need to know if we're in the air
+		Vector3 commandVelocity = direction * velocityCoefficient;
+
 		if (!grounded) {
-			destination *= airborneDamping;
+			commandVelocity *= airborneDamping;
 		}
 
-		// Lerp LinearVelocity to destination using acceleration * time
-		tempVelocity = tempVelocity.Lerp(destination, 2 * tempAccelerationCoefficient * (float)delta);
+		linearVelocity += commandVelocity;
+		linearVelocity = linearVelocity.Normalized() * Mathf.Clamp(linearVelocity.Length(), 0, 10f);
 
-		// Save the new X and Z values to the linearVelocity param we were passed.
-		linearVelocity.X = tempVelocity.X;
-		linearVelocity.Z = tempVelocity.Z;
-
-		return linearVelocity;
+		return true;
 	}
 }

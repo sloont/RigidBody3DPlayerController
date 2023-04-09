@@ -56,7 +56,7 @@ public partial class Player : RigidBody3D
 	public float speed = 10f;
 
 	// storage for velocities
-	private Vector3 _linearVelocity = Vector3.Zero;
+	private Vector3 _commandLinearVelocity = Vector3.Zero;
 	private Vector3 _lastLinearVelocity = Vector3.Zero;
 
 	//
@@ -88,24 +88,35 @@ public partial class Player : RigidBody3D
 			Jump();
 		}
 
-		_lastLinearVelocity = _linearVelocity;
+		_lastLinearVelocity = LinearVelocity;
 
-		_linearVelocity = _Move(delta);
+		_UpdateCommandLinearVelocity();
 
-		ApplyCentralForce(_linearVelocity * Mass);
+		Vector3 commandAcceleration = (_commandLinearVelocity - _lastLinearVelocity) / (float)delta;
+
+		GD.Print(
+			"_lastLinearVelocity: ",
+			_lastLinearVelocity,
+			"\n_linearVelocity: ",
+			_commandLinearVelocity,
+			"\nacceleration: ",
+			commandAcceleration
+		);
+
+		ApplyCentralForce(commandAcceleration * Mass);
 
 		// reset the jump bool. we are finished with it.
 		_receivedJumpInput = false;
 	}
 
 	// _Move method is provided engine physics delta
-	private Vector3 _Move(double delta)
+	private void _UpdateCommandLinearVelocity()
 	{
 		// transform 2D inputs to 3D space
 		Vector3 moveDirection = _ProcessInputMoveDirection(_inputMoveDirection);
 
-		// store current LinearVelocity in tempVelocity for processing
-		Vector3 tempVelocity = LinearVelocity;
+		// store current LinearVelocity in _commandLinearVelocity for processing
+		_commandLinearVelocity = LinearVelocity;
 
 		// set grounded bools
 		_CheckGrounded();
@@ -114,33 +125,20 @@ public partial class Player : RigidBody3D
 		foreach (Movement movement in movementComponents) {
 			movement.isMovementOn = movement.ShouldActivate();
 
-			tempVelocity = movement.CalculateLinearVelocity(
+			movement.CalculateLinearVelocity(
 				moveDirection,
-				tempVelocity,
-				speed,
-				_grounded,
-				delta
+				ref _commandLinearVelocity,
+				_grounded
 			);
-
-			GD.Print(movement.Name, ":  ", tempVelocity);
 		}
 
-		if (!grounded && !receivedJumpInput) {
-			tempVelocity.Y = tempVelocity.Lerp(Vector3.Down, 9.8f * (float)delta).Y;
-		}
-
-		_CheckWalking(tempVelocity);
-
-		return tempVelocity;
-
-
-
+		_CheckWalking();
 	}
 
 	// safe space for rigid body state modification
 	public override void _IntegrateForces(PhysicsDirectBodyState3D state)
 	{
-		GD.Print(state.LinearVelocity, "\n", state.TotalGravity, state.TotalLinearDamp);
+
 	}
 
 	public void Jump()
@@ -161,10 +159,8 @@ public partial class Player : RigidBody3D
 	}
 
 	// extracted into its own method for easier animations
-	private bool _CheckWalking(Vector3 velocity)
+	private bool _CheckWalking()
 	{
-		velocity.Y = 0;
-
 		_walking = grounded && Mathf.Abs(_inputMoveDirection.Length()) > 0.1;
 
 		if (!_wasWalking && _walking) {
