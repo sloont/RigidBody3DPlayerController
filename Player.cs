@@ -95,12 +95,7 @@ public partial class Player : RigidBody3D
 		Vector3 commandAcceleration = (_commandLinearVelocity - _lastLinearVelocity) / (float)delta;
 
 		GD.Print(
-			"_lastLinearVelocity: ",
-			_lastLinearVelocity,
-			"\n_linearVelocity: ",
-			_commandLinearVelocity,
-			"\nacceleration: ",
-			commandAcceleration
+			(_commandLinearVelocity.Y)
 		);
 
 		ApplyCentralForce(commandAcceleration * Mass);
