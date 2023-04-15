@@ -146,23 +146,28 @@ public partial class Player : RigidBody3D
 		_debugDrawVector3(state.LinearVelocity.Normalized(), new Color(1,1,0,1));
 	}
 		private void _ApplyCustomFriction() {
-		float slopeAngle = 0;
+		float slopeAngleRadians = 0;
 		Vector3 up = Vector3.Up; // direction of gravity
 		Quaternion rotateY = new(0,0,0,1);
 
 		if (_floorDetection.IsColliding()) {
 			Vector3 groundNormal = _floorDetection.GetCollisionNormal(0);
-			slopeAngle = Mathf.RadToDeg(groundNormal.AngleTo(Vector3.Up));
+			slopeAngleRadians = groundNormal.AngleTo(Vector3.Up);
 			rotateY = new Quaternion(groundNormal, Vector3.Up);
 
-			if (slopeAngle != 0 && slopeAngle < 45.0f) {
+			float slopeAngleDegrees = Mathf.RadToDeg(slopeAngleRadians);
+			if (slopeAngleDegrees != 0 && slopeAngleDegrees < 86.0f) {
 				// Vector3 customFriction = Vector3.Forward * temp * -Gravity * Mathf.Sin(slopeAngle) * Mass;
 				// groundNormal should NOT be rotated by Transform.Basis
+				
 				up = groundNormal;
 				Vector3 frictionDirection = new Vector3(-up.X, 0, -up.Z) * rotateY;
-				// float coefficient = 1 + (Mathf.Sqrt(Mathf.Abs(Mathf.Cos(slopeAngle))) - Mathf.Sqrt(Mathf.Abs(Mathf.Sin(slopeAngle))));
-				float coefficient = (Mathf.Cos(slopeAngle));
-				float subcoefficient = 1/(19.1f*coefficient);
+
+				// float coefficient = ;
+				float cosine = (Mathf.Cos(slopeAngleRadians));
+				float sine = (Mathf.Sin(slopeAngleRadians));
+				float tangent = (Mathf.Tan(slopeAngleRadians));
+				// float subcoefficient = ;
 
 				// _debugDrawVector3(new Vector3(up.X, 0, 0), new Color(1,0,0,1));
 				// _debugDrawVector3(new Vector3(0, up.Y, 0), new Color(0,1,0,1));
@@ -170,13 +175,14 @@ public partial class Player : RigidBody3D
 				_debugDrawVector3(frictionDirection, new Color(0,1,1,1));
 				_debugDrawVector3(up, new Color(1,0,1,1));
 
-				ApplyCentralForce(frictionDirection * Gravity * GravityScale * Mass * (coefficient + subcoefficient));
+				ApplyCentralForce(frictionDirection * Gravity * GravityScale * Mass * sine);
 
 				GD.Print(
-					"slope angle: ", slopeAngle, "deg",
-					"\nup Vector3: ", up,
-					"\ncoefficient: ", coefficient,
-					"\nsubCoefficient: ", subcoefficient,
+					"slope angle: ", slopeAngleDegrees, " deg",
+
+					"\ncosine: ", cosine,
+					"\nsine: ", sine,
+					"\ntangent: ", tangent,
 					"\n"
 				);
 			}
