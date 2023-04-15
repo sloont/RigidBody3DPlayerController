@@ -23,6 +23,8 @@ public partial class Player : RigidBody3D
 
 	// floor detection shapecast
 	private ShapeCast3D _floorDetection;
+	// camera pivot
+	private Node3D _pivot;
 
 	// bools for checking airborne status
 	private bool _grounded = true;
@@ -59,17 +61,27 @@ public partial class Player : RigidBody3D
 	private Vector3 _commandLinearVelocity = Vector3.Zero;
 	private Vector3 _lastLinearVelocity = Vector3.Zero;
 
+	public float Gravity = (float)ProjectSettings.GetSetting("physics/3d/default_gravity");
+
+	// rotation
+	private Vector2 _inputLookDirection = Vector2.Zero;
+	private Vector3 _playerRotation = Vector3.Zero;
+	private Vector3 _cameraRotation = new Vector3(-0.52f,0,0);
+
 	//
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		_CacheGetNodes();
 		_LoadMovementComponents();
+		Input.MouseMode = Input.MouseModeEnum.Captured;
 	}
 
 	public override void _Input(InputEvent @event)
 	{
-		return;
+		if (@event is InputEventMouseMotion inputEvent) {
+			_inputLookDirection = inputEvent.Relative * 0.01f;
+		}
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -83,7 +95,7 @@ public partial class Player : RigidBody3D
 	{
 
 		_inputMoveDirection = Input.GetVector(INPUT_MOVE_LEFT, INPUT_MOVE_RIGHT, INPUT_MOVE_FORWARD, INPUT_MOVE_BACKWARD);
-
+		_RotatePlayer(delta);
 		if (Input.IsActionJustPressed("jump")) {
 			Jump();
 		}
@@ -91,12 +103,9 @@ public partial class Player : RigidBody3D
 		_lastLinearVelocity = LinearVelocity;
 
 		_UpdateCommandLinearVelocity();
+		_ApplyCustomFriction();
 
 		Vector3 commandAcceleration = (_commandLinearVelocity - _lastLinearVelocity) / (float)delta;
-
-		GD.Print(
-			(_commandLinearVelocity.Y)
-		);
 
 		ApplyCentralForce(commandAcceleration * Mass);
 
@@ -133,7 +142,94 @@ public partial class Player : RigidBody3D
 	// safe space for rigid body state modification
 	public override void _IntegrateForces(PhysicsDirectBodyState3D state)
 	{
+		GD.Print("Speed: ", state.LinearVelocity.Length());
+		_debugDrawVector3(state.LinearVelocity.Normalized(), new Color(1,1,0,1));
+	}
+		private void _ApplyCustomFriction() {
+		float slopeAngle = 0;
+		Vector3 up = Vector3.Up; // direction of gravity
+		Quaternion rotateY = new(0,0,0,1);
 
+		if (_floorDetection.IsColliding()) {
+			Vector3 groundNormal = _floorDetection.GetCollisionNormal(0);
+			slopeAngle = Mathf.RadToDeg(groundNormal.AngleTo(Vector3.Up));
+			rotateY = new Quaternion(groundNormal, Vector3.Up);
+
+			if (slopeAngle != 0 && slopeAngle < 45.0f) {
+				// Vector3 customFriction = Vector3.Forward * temp * -Gravity * Mathf.Sin(slopeAngle) * Mass;
+				// groundNormal should NOT be rotated by Transform.Basis
+				up = groundNormal;
+				Vector3 frictionDirection = new Vector3(-up.X, 0, -up.Z) * rotateY;
+				// float coefficient = 1 + (Mathf.Sqrt(Mathf.Abs(Mathf.Cos(slopeAngle))) - Mathf.Sqrt(Mathf.Abs(Mathf.Sin(slopeAngle))));
+				float coefficient = (Mathf.Cos(slopeAngle));
+				float subcoefficient = 1/(19.1f*coefficient);
+
+				// _debugDrawVector3(new Vector3(up.X, 0, 0), new Color(1,0,0,1));
+				// _debugDrawVector3(new Vector3(0, up.Y, 0), new Color(0,1,0,1));
+				// _debugDrawVector3(new Vector3(0, 0, up.Z), new Color(0,0,1,1));
+				_debugDrawVector3(frictionDirection, new Color(0,1,1,1));
+				_debugDrawVector3(up, new Color(1,0,1,1));
+
+				ApplyCentralForce(frictionDirection * Gravity * GravityScale * Mass * (coefficient + subcoefficient));
+
+				GD.Print(
+					"slope angle: ", slopeAngle, "deg",
+					"\nup Vector3: ", up,
+					"\ncoefficient: ", coefficient,
+					"\nsubCoefficient: ", subcoefficient,
+					"\n"
+				);
+			}
+
+		}
+
+		// ApplyCentralForce(); //*
+		// _debugDrawVector3(Vector3.Up, new Color(0,1,1,1));
+	}
+
+	private void _debugDrawVector3(Vector3 vector, Color color)
+	{
+		MeshInstance3D debugMesh = new();
+		ImmediateMesh immediateMesh = new();
+
+		debugMesh.Mesh = immediateMesh;
+
+		StandardMaterial3D debugMaterial = new StandardMaterial3D();
+
+		immediateMesh.SurfaceBegin(Mesh.PrimitiveType.Lines, debugMaterial);
+		immediateMesh.SurfaceAddVertex(GlobalPosition);
+		immediateMesh.SurfaceAddVertex(GlobalPosition + vector.Normalized());
+		immediateMesh.SurfaceEnd();
+		debugMaterial.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+		debugMaterial.AlbedoColor = color;
+
+		GetTree().Root.AddChild(debugMesh);
+
+		Tween tween = GetTree().CreateTween();
+		tween.TweenProperty(debugMaterial, "albedo_color", new Color(color.R,color.G,color.B,0), 1.0);
+		tween.TweenCallback(Callable.From(debugMesh.QueueFree));
+	}
+
+	private void _RotatePlayer(double delta) {
+
+		float mouseSensitivity = 5f;
+
+		// feed Input our 4 strings (-x, x, -y, y) and return a Vector2
+		_inputLookDirection += Input.GetVector("look_left", "look_right", "look_up", "look_down");
+
+		//structs have to be set to a Vector3 variable instead of direct modification
+		// set camera rotation y
+		_playerRotation.Y = this.Rotation.Y - _inputLookDirection.X * mouseSensitivity * (float) delta;
+
+		_cameraRotation.X += this.Rotation.X - _inputLookDirection.Y * mouseSensitivity * (float) delta;
+
+		_cameraRotation.X = Math.Max(Math.Min(1.57f, _cameraRotation.X), -1.57f); // Clamp?
+		// assign these values to our Camera
+		_pivot.Rotation = _cameraRotation;
+		// assign these values to our Player
+		this.Rotation = _playerRotation;
+		// reset look direction vector to zero
+		_inputLookDirection = Vector2.Zero;
 	}
 
 	public void Jump()
@@ -212,5 +308,6 @@ public partial class Player : RigidBody3D
 	private void _CacheGetNodes()
 	{
 		_floorDetection = GetNode<ShapeCast3D>("%FloorDetection");
+		_pivot = GetNode<Node3D>("%Pivot");
 	}
 }

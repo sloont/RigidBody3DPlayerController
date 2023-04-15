@@ -20,7 +20,7 @@ public partial class Jumping : Movement
 	{
 		// if we just jumped. Set linearVelocity.Y to jumpVelocity
 		if (isMovementOn) {
-			linearVelocity.Y = JumpVelocity;
+			// linearVelocity.Y = JumpVelocity;
 			return true;
 		}
 

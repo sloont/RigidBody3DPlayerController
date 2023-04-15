@@ -2,8 +2,8 @@ using Godot;
 
 public partial class Walking : Movement
 {
-	[Export] public float positiveVelocityCoeffecient = 0.2f;
-	[Export] public float negativeVelocityCoefficient = 0.1f;
+	[Export] public float positiveVelocityCoeffecient = 5f;
+	[Export] public float negativeVelocityCoefficient = 3f;
 
 	[Export] public float airborneDamping = 0.3f;
 
